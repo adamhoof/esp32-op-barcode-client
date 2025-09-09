@@ -2,8 +2,11 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <ArduinoJson.h>
+#include <esp_log.h>
 #include "request.h"
 #include "config.h"
+
+static const char* TAG = "BARCODE_TASK";
 
 void barcodeTask(void* pvParameters) {
     const auto* params = static_cast<const BarcodeTaskParams*>(pvParameters);
@@ -29,7 +32,7 @@ void barcodeTask(void* pvParameters) {
                 serializeJson(doc, request.payload, sizeof(request.payload));
 
                 if (xQueueSend(params->outgoingQueue, &request, pdMS_TO_TICKS(100)) != pdPASS) {
-
+                    ESP_LOGW(TAG, "Failed to send barcode request to MQTT queue.");
                 }
             }
         }

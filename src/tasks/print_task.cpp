@@ -1,9 +1,12 @@
-#include "../../include/tasks/print_task.h"
+#include "tasks/print_task.h"
 #include <Arduino.h>
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_GFX.h>
+#include <esp_log.h>
 #include "config.h"
 #include "response.h"
+
+static const char* TAG = "PRINT_TASK";
 
 void printProductData(Adafruit_ILI9341 &display, const MqttProductDataResponse& productData) {
     display.fillScreen(ILI9341_BLACK);
@@ -37,13 +40,14 @@ void printTask(void* pvParameters) {
     display.setTextSize(2);
     display.setCursor(10, 10);
     display.println("Waiting for scan...");
-    Serial.println("Print task started");
+    ESP_LOGD(TAG, "Print task started");
 
     for (;;) {
         MqttProductDataResponse receivedData{};
         if (xQueueReceive(params->incomingQueue, &receivedData, portMAX_DELAY)) {
-            Serial.printf("Received product data for display: %s\n", receivedData.name);
+            ESP_LOGD(TAG, "Received product data for display: %s", receivedData.name);
             printProductData(display, receivedData);
         }
     }
 }
+

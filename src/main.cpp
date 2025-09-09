@@ -2,23 +2,24 @@
 #include <WiFi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-
+#include <esp_log.h>
 #include "response.h"
 #include "request.h"
 #include "tasks/barcode_task.h"
 #include "tasks/network_task.h"
 #include "tasks/print_task.h"
 
+static const char* TAG = "MAIN";
+
 void setup() {
-    Serial.begin(115200);
     vTaskDelay(pdMS_TO_TICKS(1000));
-    Serial.println("Starting system...");
+    ESP_LOGD(TAG, "Starting system...");
 
     static QueueHandle_t outgoingMqttQueue = xQueueCreate(5, sizeof(MqttProductDataRequest));
     static QueueHandle_t incomingDisplayDataQueue = xQueueCreate(5, sizeof(MqttProductDataResponse));
 
     if (outgoingMqttQueue == nullptr || incomingDisplayDataQueue == nullptr) {
-        Serial.println("Error creating queues, restarting...");
+        ESP_LOGW(TAG, "Error creating queues, restarting...");
         ESP.restart();
     }
 
@@ -31,7 +32,7 @@ void setup() {
     static PrintTaskParams printTaskParams = { incomingDisplayDataQueue };
     xTaskCreate(printTask, "print_task", 4096, &printTaskParams, 1, nullptr);
 
-    Serial.println("All tasks created. Deleting setup task.");
+    ESP_LOGD(TAG, "All tasks created. Deleting setup task.");
     vTaskDelete(nullptr);
 }
 
