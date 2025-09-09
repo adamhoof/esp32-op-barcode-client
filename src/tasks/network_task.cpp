@@ -13,6 +13,8 @@ espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t incomingQu
 {
     return [incomingQueue](const espMqttClientTypes::MessageProperties& properties, const char* topic,
                            const uint8_t* payload, size_t len, size_t index, size_t total) {
+        ESP_LOGI(TAG, "Received raw MQTT payload: %.*s", len, (char*)payload);
+
         MqttProductDataResponse response{};
         StaticJsonDocument<350> doc;
         const DeserializationError error = deserializeJson(doc, payload, len);
@@ -21,10 +23,10 @@ espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t incomingQu
             return;
         }
         strlcpy(response.name, doc["name"] | "", sizeof(response.name));
-        response.price = doc["price"] | 0.0;
-        response.stock = doc["stock"] | 0;
         strlcpy(response.unitOfMeasure, doc["unitOfMeasure"] | "", sizeof(response.unitOfMeasure));
-        response.unitOfMeasureKoef = doc["unitOfMeasureCoef"] | 0.0;
+        response.price = doc["price"].as<float>();
+        response.stock = doc["stock"].as<int>();
+        response.unitOfMeasureKoef = doc["unitOfMeasureCoef"].as<float>();
         if (xQueueSend(incomingQueue, &response, pdMS_TO_TICKS(100)) != pdPASS) {
             ESP_LOGW(TAG, "Failed to send incoming display data to queue.");
         }
