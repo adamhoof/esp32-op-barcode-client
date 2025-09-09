@@ -14,12 +14,12 @@ const std::string MQTT_PRODUCT_DATA_RESPONSE_TOPIC = std::string(MQTT_CLIENT_NAM
 const char* const MQTT_LIGHT_COMMAND_TOPIC = "/light";
 const char* const MQTT_FIRMWARE_UPDATE_TOPIC = "/firmware_update";
 
-const int BRARCODE_TX_PIN = 15;
-const int BARCODE_RX_PIN = 13;
-const int BARCODE_BAUD_RATE = 9600;
-const char BARCODE_DELIMITER = '\r';
-const int BARCODE_BUFFER_SIZE = 30;
+constexpr int BARCODE_TX_PIN = 15;
+constexpr int BARCODE_RX_PIN = 13;
+constexpr int BARCODE_BAUD_RATE = 9600;
+constexpr char BARCODE_DELIMITER = '\r';
+constexpr int BARCODE_BUFFER_SIZE = 30;
 
-const int DISPLAY_CS_PIN = 32;
-const int DISPLAY_DC_PIN = 26;
-const int DISPLAY_RST_PIN = 25;
+constexpr int DISPLAY_CS_PIN = 32;
+constexpr int DISPLAY_DC_PIN = 26;
+constexpr int DISPLAY_RST_PIN = 25;

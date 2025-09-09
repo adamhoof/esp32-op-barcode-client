@@ -8,7 +8,7 @@
 void barcodeTask(void* pvParameters) {
     const auto* params = static_cast<const BarcodeTaskParams*>(pvParameters);
 
-    SoftwareSerial barcodeReaderSerial(BARCODE_RX_PIN, BRARCODE_TX_PIN);
+    SoftwareSerial barcodeReaderSerial(BARCODE_RX_PIN, BARCODE_TX_PIN);
     barcodeReaderSerial.begin(BARCODE_BAUD_RATE);
 
     for (;;) {
