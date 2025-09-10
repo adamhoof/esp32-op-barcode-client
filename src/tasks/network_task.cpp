@@ -66,14 +66,33 @@ void networkTask(void* pvParameters)
     mqttClient.setCleanSession(true);
     mqttClient.setKeepAlive(15);
 
-    ESP_LOGD(TAG, "Initializing WiFi connection...");
+    ESP_LOGD(TAG, "Connecting to WiFi");
+    PrintMessage statusMessage = {};
+    statusMessage.type = PRINT_NETWORK_STATUS;
+    statusMessage.data.networkStatus.isWifiConnected = false;
+    statusMessage.data.networkStatus.isMqttConnected = false;
+    xQueueSend(params->printQueue, &statusMessage, pdMS_TO_TICKS(100));
+
     WiFi.persistent(false);
     WiFi.setAutoReconnect(true);
     WiFi.begin(WIFI_SSID, WIFI_PASS);
     while (!WiFi.isConnected()) {
-        delay(300);
+        vTaskDelay(pdMS_TO_TICKS(300));
         ESP_LOGD(TAG, ".");
     }
+
+    statusMessage.data.networkStatus.isWifiConnected = true;
+    xQueueSend(params->printQueue, &statusMessage, pdMS_TO_TICKS(100));
+
+    ESP_LOGD(TAG, "Connecting to MQTT broker");
+    mqttClient.connect();
+    while (!mqttClient.connected()) {
+        vTaskDelay(pdMS_TO_TICKS(300));
+        ESP_LOGD(TAG, ".");
+    }
+
+    statusMessage.data.networkStatus.isMqttConnected = true;
+    xQueueSend(params->printQueue, &statusMessage, pdMS_TO_TICKS(100));
 
     while (true) {
         // always loop before anything to advance internal client state

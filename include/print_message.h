@@ -7,6 +7,12 @@
 enum PrintMessageType {
     PRINT_PRODUCT_DATA,
     PRINT_ERROR_MESSAGE,
+    PRINT_NETWORK_STATUS
+};
+
+struct NetworkStatusMessage {
+    bool isWifiConnected;
+    bool isMqttConnected;
 };
 
 struct PrintMessage {
@@ -14,5 +20,6 @@ struct PrintMessage {
     union {
         MqttProductDataResponse productData;
         char errorMessage[MAX_ERROR_MESSAGE_LENGTH];
+        NetworkStatusMessage networkStatus;
     } data;
 };

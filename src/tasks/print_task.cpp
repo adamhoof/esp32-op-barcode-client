@@ -10,6 +10,33 @@
 
 static const char* TAG = "PRINT_TASK";
 
+void printNetworkStatusMessage(Adafruit_ILI9341& display, const NetworkStatusMessage& status)
+{
+    display.fillScreen(ILI9341_BLACK);
+    display.setTextSize(1);
+    display.setCursor(0, 20);
+    display.setTextColor(ILI9341_WHITE);
+
+    display.print("WiFi: ");
+    if (status.isWifiConnected) {
+        display.setTextColor(ILI9341_GREEN);
+        display.println("connected");
+    } else {
+        display.setTextColor(ILI9341_RED);
+        display.println("disconnected");
+    }
+    display.setTextColor(ILI9341_WHITE);
+    display.setCursor(0, 50);
+    display.print("MQTT: ");
+    if (status.isMqttConnected) {
+        display.setTextColor(ILI9341_GREEN);
+        display.println("connected");
+    } else {
+        display.setTextColor(ILI9341_RED);
+        display.println("disconnected");
+    }
+}
+
 void printErrorMessage(Adafruit_ILI9341& display, const char* erroMessage)
 {
     display.fillScreen(ILI9341_BLACK);
@@ -54,7 +81,8 @@ void printTask(void* pvParameters) {
     display.println("^__^");
     ESP_LOGD(TAG, "Print task started");
 
-    for (;;) {
+    for (;;)
+    {
         PrintMessage receivedMessage{};
         if (xQueueReceive(params->printQueue, &receivedMessage, portMAX_DELAY)) {
             switch (receivedMessage.type) {
@@ -66,8 +94,11 @@ void printTask(void* pvParameters) {
                     ESP_LOGD(TAG, "Received error message for display: %s", receivedMessage.data.errorMessage);
                     printErrorMessage(display, receivedMessage.data.errorMessage);
                     break;
+                case PRINT_NETWORK_STATUS:
+                    ESP_LOGD(TAG, "Received network status for display. WiFi: %d, MQTT: %d", receivedMessage.data.networkStatus.isWifiConnected, receivedMessage.data.networkStatus.isMqttConnected);
+                    printNetworkStatusMessage(display, receivedMessage.data.networkStatus);
+                    break;
             }
         }
     }
 }
-
