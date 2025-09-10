@@ -11,9 +11,9 @@
 
 static const char* TAG = "NETWORK_TASK";
 
-espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t incomingQueue)
+espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t printQueue)
 {
-    return [incomingQueue](const espMqttClientTypes::MessageProperties& properties, const char* topic,
+    return [printQueue](const espMqttClientTypes::MessageProperties& properties, const char* topic,
                            const uint8_t* payload, size_t len, size_t index, size_t total) {
         ESP_LOGI(TAG, "Received raw MQTT payload: %.*s", len, (char*)payload);
 
@@ -39,7 +39,7 @@ espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t incomingQu
             message.data.productData = response;
         }
 
-        if (xQueueSend(incomingQueue, &message, pdMS_TO_TICKS(100)) != pdPASS) {
+        if (xQueueSend(printQueue, &message, pdMS_TO_TICKS(100)) != pdPASS) {
             ESP_LOGW(TAG, "Failed to send incoming display data to queue.");
         }
     };
