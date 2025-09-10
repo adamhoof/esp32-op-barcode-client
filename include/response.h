@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 struct MqttProductDataResponse {
     char name[100];
     double price;

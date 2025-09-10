@@ -6,6 +6,7 @@
 #include "config.h"
 #include "request.h"
 #include "response.h"
+#include <freertos/FreeRTOS.h>
 
 static const char* TAG = "NETWORK_TASK";
 
@@ -51,6 +52,8 @@ void networkTask(void* pvParameters)
     mqttClient.onConnect(onConnectCallback(mqttClient));
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setClientId(MQTT_CLIENT_NAME);
+    mqttClient.setCleanSession(true);
+    mqttClient.setKeepAlive(15);
 
     ESP_LOGD(TAG, "Initializing WiFi connection...");
     WiFi.persistent(false);
@@ -62,25 +65,31 @@ void networkTask(void* pvParameters)
     }
 
     while (true) {
+        // always loop before anything to advance internal client state
         mqttClient.loop();
 
         if (WiFi.isConnected()) {
-
-            if (!mqttClient.connected()) {
-                ESP_LOGD(TAG, "Attempting to connect to MQTT broker...");
-                mqttClient.connect();
-            }
-            else {
+            if (mqttClient.connected()) {
                 MqttProductDataRequest receivedRequest{};
-                if (xQueueReceive(params->outgoingQueue, &receivedRequest, pdMS_TO_TICKS(1000)) == pdPASS) {
+                if (xQueueReceive(params->outgoingQueue, &receivedRequest, portMAX_DELAY) == pdPASS) {
                     ESP_LOGD(TAG, "Publishing MQTT message to topic: %s", receivedRequest.topic);
-                    mqttClient.publish(receivedRequest.topic, 1, false, receivedRequest.payload);
-                } else {
-                    ESP_LOGV(TAG, "No outgoing MQTT requests in queue.");
+                    if (mqttClient.publish(receivedRequest.topic, 1, false, receivedRequest.payload)) {
+                        ESP_LOGD(TAG, "Published successfully", receivedRequest.topic);
+                    } // TODO send data to display
                 }
             }
+
+            else {
+                ESP_LOGD(TAG, "Attempting to connect to MQTT broker...");
+                mqttClient.connect();
+                // prevent starving the task
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
         }
-        else { // WiFi is disconnected, auto-retry will try to reconnect
+
+
+        else {
+            // WiFi is disconnected, auto-retry will try to reconnect
             ESP_LOGW(TAG, "WiFi disconnected. Attempting to reconnect...");
             const TickType_t startTime = xTaskGetTickCount();
             while (!WiFi.isConnected() && (xTaskGetTickCount() - startTime < wifiRestartTimeoutTicks)) {

@@ -21,6 +21,7 @@ void barcodeTask(void* pvParameters) {
             barcodeBuffer[bytesRead] = '\0';
 
             if (bytesRead > 0) {
+                ESP_LOGI(TAG, "Barcode: %s", barcodeBuffer);
                 MqttProductDataRequest request{};
                 StaticJsonDocument<200> doc;
 
