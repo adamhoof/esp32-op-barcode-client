@@ -4,8 +4,8 @@
 #include <freertos/queue.h>
 
 struct NetworkTaskParams {
-    QueueHandle_t incomingQueue;
-    QueueHandle_t outgoingQueue;
+    QueueHandle_t printQueue;
+    QueueHandle_t outgoingMqttQueue;
 };
 
 [[noreturn]] [[noreturn]] void networkTask(void* pvParameters);

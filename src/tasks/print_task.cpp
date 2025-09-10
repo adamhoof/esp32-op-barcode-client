@@ -6,6 +6,7 @@
 #include "config.h"
 #include "response.h"
 #include "arial.h"
+#include "print_message.h"
 
 static const char* TAG = "PRINT_TASK";
 
@@ -19,10 +20,6 @@ void printErrorMessage(Adafruit_ILI9341& display, const char* erroMessage)
 }
 
 void printProductData(Adafruit_ILI9341 &display, const MqttProductDataResponse& productData) {
-    if (strlen(productData.name) == 0 || productData.price == 0) {
-        printErrorMessage(display, "Zkuste znovu\nnebo\nzavolejte obsluhu...");
-        return;
-    }
     display.fillScreen(ILI9341_BLACK);
     display.setCursor(0, 20);
     display.setTextSize(1);
@@ -58,10 +55,18 @@ void printTask(void* pvParameters) {
     ESP_LOGD(TAG, "Print task started");
 
     for (;;) {
-        MqttProductDataResponse receivedData{};
-        if (xQueueReceive(params->incomingQueue, &receivedData, portMAX_DELAY)) {
-            ESP_LOGD(TAG, "Received product data for display: %s", receivedData.name);
-            printProductData(display, receivedData);
+        PrintMessage receivedMessage{};
+        if (xQueueReceive(params->printQueue, &receivedMessage, portMAX_DELAY)) {
+            switch (receivedMessage.type) {
+                case PRINT_PRODUCT_DATA:
+                    ESP_LOGD(TAG, "Received product data for display: %s", receivedMessage.data.productData.name);
+                    printProductData(display, receivedMessage.data.productData);
+                    break;
+                case PRINT_ERROR_MESSAGE:
+                    ESP_LOGD(TAG, "Received error message for display: %s", receivedMessage.data.errorMessage);
+                    printErrorMessage(display, receivedMessage.data.errorMessage);
+                    break;
+            }
         }
     }
 }

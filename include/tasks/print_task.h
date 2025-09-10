@@ -4,7 +4,7 @@
 #include <freertos/queue.h>
 
 struct PrintTaskParams {
-    QueueHandle_t incomingQueue;
+    QueueHandle_t printQueue;
 };
 
 [[noreturn]] void printTask(void* pvParameters);

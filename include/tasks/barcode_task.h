@@ -4,7 +4,8 @@
 #include <freertos/queue.h>
 
 struct BarcodeTaskParams {
-    QueueHandle_t outgoingQueue;
+    QueueHandle_t printQueue;
+    QueueHandle_t outgoingMqttQueue;
 };
 
 [[noreturn]] void barcodeTask(void* pvParameters);

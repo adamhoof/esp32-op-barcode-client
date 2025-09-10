@@ -7,6 +7,7 @@
 #include "request.h"
 #include "response.h"
 #include <freertos/FreeRTOS.h>
+#include "print_message.h"
 
 static const char* TAG = "NETWORK_TASK";
 
@@ -28,7 +29,17 @@ espMqttClientTypes::OnMessageCallback onMessageCallback(QueueHandle_t incomingQu
         response.price = doc["price"].as<float>();
         response.stock = doc["stock"].as<int>();
         response.unitOfMeasureKoef = doc["unitOfMeasureCoef"].as<float>();
-        if (xQueueSend(incomingQueue, &response, pdMS_TO_TICKS(100)) != pdPASS) {
+
+        PrintMessage message = {};
+        if (strlen(response.name) == 0 || response.price == 0) {
+            message.type = PRINT_ERROR_MESSAGE;
+            strlcpy(message.data.errorMessage, "Zkuste znovu\nnebo\nzavolejte obsluhu...", sizeof(message.data.errorMessage));
+        } else {
+            message.type = PRINT_PRODUCT_DATA;
+            message.data.productData = response;
+        }
+
+        if (xQueueSend(incomingQueue, &message, pdMS_TO_TICKS(100)) != pdPASS) {
             ESP_LOGW(TAG, "Failed to send incoming display data to queue.");
         }
     };
@@ -48,7 +59,7 @@ void networkTask(void* pvParameters)
     const auto* params = static_cast<NetworkTaskParams*>(pvParameters);
     constexpr TickType_t wifiRestartTimeoutTicks = pdMS_TO_TICKS(30000);
 
-    mqttClient.onMessage(onMessageCallback(params->incomingQueue));
+    mqttClient.onMessage(onMessageCallback(params->printQueue));
     mqttClient.onConnect(onConnectCallback(mqttClient));
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
     mqttClient.setClientId(MQTT_CLIENT_NAME);
@@ -71,7 +82,7 @@ void networkTask(void* pvParameters)
         if (WiFi.isConnected()) {
             if (mqttClient.connected()) {
                 MqttProductDataRequest receivedRequest{};
-                if (xQueueReceive(params->outgoingQueue, &receivedRequest, portMAX_DELAY) == pdPASS) {
+                if (xQueueReceive(params->outgoingMqttQueue, &receivedRequest, portMAX_DELAY) == pdPASS) {
                     ESP_LOGD(TAG, "Publishing MQTT message to topic: %s", receivedRequest.topic);
                     if (mqttClient.publish(receivedRequest.topic, 1, false, receivedRequest.payload)) {
                         ESP_LOGD(TAG, "Published successfully", receivedRequest.topic);
