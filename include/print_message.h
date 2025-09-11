@@ -13,6 +13,7 @@ enum PrintMessageType {
 struct NetworkStatusMessage {
     bool isWifiConnected;
     bool isMqttConnected;
+    char ipAddressLastOctet[4];
 };
 
 struct PrintMessage {

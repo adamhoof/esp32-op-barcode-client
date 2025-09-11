@@ -8,6 +8,7 @@
 #include "tasks/barcode_task.h"
 #include "tasks/network_task.h"
 #include "tasks/print_task.h"
+#include "tasks/ota_task.h"
 
 static const char* TAG = "MAIN";
 
@@ -23,7 +24,10 @@ void setup() {
         ESP.restart();
     }
 
-    static NetworkTaskParams networkTaskParams = { printQueue, outgoingMqttQueue };
+    static TaskHandle_t otaTaskHandle = nullptr;
+    xTaskCreate(ota_task, "ota_task", 4096, nullptr, 1, &otaTaskHandle);
+
+    static NetworkTaskParams networkTaskParams = { printQueue, outgoingMqttQueue, otaTaskHandle };
     xTaskCreate(networkTask, "network_task", 8192, &networkTaskParams, 1, nullptr);
 
     static BarcodeTaskParams barcodeTaskParams = {  printQueue, outgoingMqttQueue };

@@ -5,7 +5,7 @@
 const char* const WIFI_SSID = "Medunka";
 const char* const WIFI_PASS = "med1974unka";
 
-const char* const MQTT_CLIENT_NAME = "op-barcode-esp32-back-corner";
+const char* const MQTT_CLIENT_NAME = "op-barcode-esp32-middle";
 const char* const MQTT_SERVER = "10.0.0.138";
 constexpr int MQTT_PORT = 1883;
 

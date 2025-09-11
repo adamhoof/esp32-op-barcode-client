@@ -6,6 +6,7 @@
 struct NetworkTaskParams {
     QueueHandle_t printQueue;
     QueueHandle_t outgoingMqttQueue;
+    TaskHandle_t otaTaskHandle;
 };
 
-[[noreturn]] [[noreturn]] void networkTask(void* pvParameters);
+[[noreturn]] void networkTask(void* pvParameters);

@@ -41,7 +41,7 @@ void barcodeTask(void* pvParameters)
                     PrintMessage errorMessage = {};
                     errorMessage.type = PRINT_ERROR_MESSAGE;
                     snprintf(errorMessage.data.errorMessage, MAX_ERROR_MESSAGE_LENGTH,
-                             "Blbe sem to\nnaskenoval.\nZkuste znovu...");
+                             "Chyba nacteni.\nZkuste znovu...");
                     if (xQueueSend(params->printQueue, &errorMessage, pdMS_TO_TICKS(100)) != pdPASS) {
                         ESP_LOGW(TAG, "Failed to send error message to display queue.");
                     }

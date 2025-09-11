@@ -20,7 +20,9 @@ void printNetworkStatusMessage(Adafruit_ILI9341& display, const NetworkStatusMes
     display.print("WiFi: ");
     if (status.isWifiConnected) {
         display.setTextColor(ILI9341_GREEN);
-        display.println("connected");
+        display.print("connected ");
+        display.setTextColor(ILI9341_WHITE);
+        display.println(status.ipAddressLastOctet);
     } else {
         display.setTextColor(ILI9341_RED);
         display.println("disconnected");
